@@ -1,0 +1,58 @@
+# Carpetas de compilación de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+.venv/
+venv/
+ENV/
+env/
+.venv*/
+
+# Archivos de configuración locales
+*.env
+*.ini
+*.cfg
+*.local
+*.toml
+
+# Archivos de logs
+*.log
+
+# Archivos de base de datos locales
+*.sqlite3
+*.db
+
+# Archivos temporales
+*.swp
+*.swo
+*.tmp
+*.bak
+
+# Cache de librerías
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Herramientas de testing/coverage
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+.mypy_cache/
+.pyre/
+.pytype/
+
+# Archivos de IDEs/editores
+.vscode/
+.idea/
+*.iml
+
+# Otros
+.DS_Store
+Thumbs.db

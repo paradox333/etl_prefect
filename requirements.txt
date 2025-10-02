@@ -1,0 +1,6 @@
+prefect
+pandas
+minio
+python-dotenv
+psycopg[binary]
+openpyxl

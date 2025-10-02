@@ -1,0 +1,72 @@
+services:
+  prefect-server:
+    image: prefecthq/prefect:3-python3.12
+    command: ["prefect", "server", "start", "--host", "0.0.0.0"]
+    ports:
+      - "4200:4200"
+    environment:
+      PREFECT_LOGGING_LEVEL: INFO
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: demo_sqm
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+
+  app-bootstrap:
+    image: etl-proyect-app:latest
+    build: .
+    depends_on:
+      - prefect-server
+      - postgres
+      - minio
+    command: ["bash", "/app/entrypoint.sh"]
+    restart: "no"
+
+  prefect-worker:
+    image: etl-proyect-app:latest
+    build: .
+    depends_on:
+      - app-bootstrap
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      PREFECT_LOGGING_LEVEL: INFO
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      BUCKET: sqm-test
+      BUCKET_NAME: sqm-test
+      FILE: "LI2CO3 _ Distribution_Program_2022.xlsx"
+      FILE_NAME: "LI2CO3 _ Distribution_Program_2022.xlsx"
+      DATABASE_CONN_STR: "postgresql://test:test@postgres:5432/demo_sqm?connect_timeout=5"
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: demo_sqm
+      DATABASE_USER: test
+      DATABASE_PASSWORD: test
+      DATABASE_TABLE: products
+      DATABASE_SCHEMA: sql
+      TABLE_NAME: products
+    command: ["prefect", "worker", "start", "--pool", "default"]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  minio-data:
