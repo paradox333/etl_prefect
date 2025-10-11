@@ -10,7 +10,7 @@ services:
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_DB: demo_sqm
+      POSTGRES_DB: sqm
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test
     ports:
@@ -53,17 +53,13 @@ services:
       MINIO_SECRET_KEY: minioadmin
       BUCKET: sqm-test
       BUCKET_NAME: sqm-test
-      FILE: "LI2CO3 _ Distribution_Program_2022.xlsx"
-      FILE_NAME: "LI2CO3 _ Distribution_Program_2022.xlsx"
-      DATABASE_CONN_STR: "postgresql://test:test@postgres:5432/demo_sqm?connect_timeout=5"
+      #DATABASE_CONN_STR: "postgresql://test:test@postgres:5432/sqm?connect_timeout=5"
       DATABASE_HOST: postgres
       DATABASE_PORT: "5432"
-      DATABASE_NAME: demo_sqm
+      DATABASE_NAME: sqm
       DATABASE_USER: test
       DATABASE_PASSWORD: test
-      DATABASE_TABLE: products
-      DATABASE_SCHEMA: sql
-      TABLE_NAME: products
+      DATABASE_SCHEMA: products
     command: ["prefect", "worker", "start", "--pool", "default"]
     restart: unless-stopped
 
