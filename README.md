@@ -3,7 +3,7 @@
 
 Este proyecto implementa un flujo ETL (Extract, Transform, Load) que permite cargar datos desde archivos almacenados en MinIO hacia una base de datos PostgreSQL. Está diseñado para ser modular, escalable y fácil de configurar mediante variables de entorno. La orquestación se realiza con Prefect 3.
 
-## 📦 Descripción
+## Descripción
 
 El sistema permite:
 - Monitorear archivos en MinIO.
@@ -13,7 +13,7 @@ El sistema permite:
 - Cargar los datos en PostgreSQL.
 - Controlar el estado de cada archivo procesado.
 
-## 🧱 Arquitectura
+## Arquitectura
 
 ```mermaid
 graph TD
@@ -29,7 +29,7 @@ graph TD
 ```
 
 
-## 🧰 Requisitos del sistema
+## Requisitos del sistema
 
 Para ejecutar este proyecto necesitas tener instalado:
 
@@ -40,7 +40,7 @@ También se recomienda tener:
 - Git para clonar el repositorio
 - Un editor como VSCode para desarrollo local
 
-## ⚙️ Configuración
+## Configuración
 
 Las variables de entorno se definen en `settings.py` y se pueden cargar desde un archivo `.env`.
 
@@ -60,7 +60,7 @@ Las variables de entorno se definen en `settings.py` y se pueden cargar desde un
 - `DATABASE_PASSWORD`
 - `DATABASE_SCHEMA`
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 prefect_flows/
@@ -85,7 +85,7 @@ Dockerfile
 README.md
 ```
 
-## 🧩 Módulos Clave
+## Módulos Clave
 
 ### `monitor_storage.py`
 - Observa MinIO.
@@ -129,7 +129,7 @@ README.md
 - Imagen basada en Python 3.12.
 - Instala dependencias y configura Prefect.
 
-## 🛠️ Requisitos
+## Requisitos
 
 - Python 3.10+
 - PostgreSQL
@@ -144,7 +144,7 @@ README.md
   - `openpyxl`
 
 
-## 🚀 Ejecución
+## Ejecución
 
 1. Asegúrate de tener Docker y Docker Compose instalados.
 2. Configura el archivo `.env` con tus credenciales si es necesario.
@@ -158,7 +158,7 @@ docker-compose up --build
 5. El flujo `monitor_storage` se ejecutará cada 60 segundos y `watcher` cada 5 minutos.
 6. Los archivos nuevos o modificados serán procesados automáticamente por el flujo ETL.
 
-## 📌 Estado de Archivos
+## Estado de Archivos
 
 Cada archivo procesado se registra en la tabla `state`, con:
 - `file_path`, `etag`, `last_modified`

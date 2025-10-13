@@ -1,8 +1,5 @@
 from prefect import flow, get_run_logger
 from prefect.deployments import run_deployment
-from config import settings
-import psycopg
-from psycopg import sql
 from database.db_state import has_pending_state
 
 # Flujo que revisa periódicamente si hay archivos pendientes y dispara el ETL
