@@ -29,6 +29,7 @@ def init_products_table(df: pd.DataFrame, table_name: str):
     """
     Crea una tabla en PostgreSQL basada en la estructura del DataFrame.
     Si la tabla ya existe, no la recrea.
+    Agrega columnas extras para versionado con valores DEFAULT automáticos.
     """
     df = rename_duplicate_columns(df)
     column_defs = []
@@ -38,6 +39,10 @@ def init_products_table(df: pd.DataFrame, table_name: str):
         column_defs.append(
             sql.SQL("{} {}").format(sql.Identifier(col), sql.SQL(pg_type))
         )
+
+    # Agregar columnas extras con DEFAULT para generación automática
+    column_defs.append(sql.SQL("id_version BIGINT NOT NULL DEFAULT (to_char(CURRENT_DATE, 'YYYYMMDD')::bigint)"))
+    column_defs.append(sql.SQL("load_timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP"))
 
     ddl = sql.SQL("""
         CREATE TABLE IF NOT EXISTS {} (
@@ -52,7 +57,6 @@ def init_products_table(df: pd.DataFrame, table_name: str):
         with conn.cursor() as cur:
             cur.execute(ddl)
         conn.commit()
-
 
 def copy_dataframe_to_table(df: pd.DataFrame, table_name: str):
     """
