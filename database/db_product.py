@@ -7,6 +7,7 @@ from psycopg import sql
 import pandas as pd
 
 TABLE_NAME = "sqm.products"
+SCHEMA_NAME = settings.DATABASE_SCHEMA
 
 
 def map_dtype_to_postgres(dtype) -> str:
@@ -23,7 +24,6 @@ def map_dtype_to_postgres(dtype) -> str:
         return "TIMESTAMP"
     else:
         return "TEXT"
-
 
 def init_products_table(df: pd.DataFrame, table_name: str):
     """
@@ -124,3 +124,24 @@ def rename_duplicate_columns(df: pd.DataFrame) -> pd.DataFrame:
             cols[idx] = f"{dup}_{i}"
     df.columns = cols
     return df
+
+
+def get_latest_version_info(table_name: str) -> dict | None:
+    """
+    Retorna el último id_version y load_timestamp desde la tabla de productos.
+    """
+    with psycopg.connect(settings.DATABASE_CONN_STR, row_factory=dict_row) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                sql.SQL("""
+                    SELECT id_version, load_timestamp
+                    FROM {}.{}
+                    ORDER BY load_timestamp DESC
+                    LIMIT 1
+                """).format(
+                    sql.Identifier(SCHEMA_NAME),
+                    sql.Identifier(table_name)
+                )
+            )
+            return cur.fetchone()
+

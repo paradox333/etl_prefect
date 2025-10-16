@@ -120,7 +120,7 @@ def has_pending_state() -> bool:
             cur.execute(
                 sql.SQL("""
                     SELECT EXISTS (
-                        SELECT 1 FROM {}.{} WHERE status = 'pending' AND retries < 3
+                        SELECT 1 FROM {}.{} WHERE status != 'ready' AND retries < 3
                     );
                 """).format(
                     sql.Identifier(SCHEMA_NAME),
@@ -133,7 +133,7 @@ def has_pending_state() -> bool:
 
 def get_pending_files() -> list[str]:
     """
-    Retorna una lista con los file_path de registros pendientes (status='pending' y retries<3).
+    Retorna una lista con los file_path de registros pendientes (status != 'pending' y retries < 3).
     """
     with psycopg.connect(settings.DATABASE_CONN_STR) as conn:
         with conn.cursor() as cur:
@@ -141,7 +141,7 @@ def get_pending_files() -> list[str]:
                 sql.SQL("""
                     SELECT file_path
                     FROM {}.{}
-                    WHERE status = 'pending' AND retries < 3;
+                    WHERE status != 'ready' AND retries < 3;
                 """).format(
                     sql.Identifier(SCHEMA_NAME),
                     sql.Identifier(TABLE_NAME)

@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import os
 # uso solo en local
-#load_dotenv(override=True)
+load_dotenv(override=True)
 
 # Storage Variables
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
@@ -20,3 +20,5 @@ DATABASE_CONN_STR = (
     f"host={DATABASE_HOST} port={DATABASE_PORT} "
     f"dbname={DATABASE_NAME} user={DATABASE_USER} password={DATABASE_PASSWORD} options='-c search_path={DATABASE_SCHEMA}'"
 )
+
+COLUMNS_SUMMARIE = ["mt", "bags", "kg"]

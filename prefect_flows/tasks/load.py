@@ -1,3 +1,5 @@
+from config.settings import COLUMNS_SUMMARIE
+from database.db_product_summarie import init_summary_table, insert_summaries_bulk
 from prefect import task, get_run_logger
 import pandas as pd
 
@@ -24,14 +26,23 @@ def load_data(df: pd.DataFrame, table_name: str, file_name: str):
         # Asegurar que la tabla de destino exista con la estructura adecuada
         init_products_table(df, table_name)
 
+        # Asegura que la tabla de sumario exista
+        init_summary_table()
+
         # Insertar los datos en la tabla
         copy_dataframe_to_table(df, table_name)
+
+        # Inserta las sumatorias de las columnas mt, bags, kg
+        insert_summaries_bulk(df, COLUMNS_SUMMARIE, table_name)
 
         # Verificar la cantidad total de registros tras la carga
         total = count_rows(table_name)
 
         # Actualizar el estado del archivo a "loading" en la base de datos
         update_status(file_name, 'loading')
+
+
+        
         logger.info(f"Total of rows in {table_name!r}: {total}")
 
     except Exception as e:
