@@ -1,49 +1,53 @@
 from prefect import flow, get_run_logger
 from config import settings
-from database.db_state import get_pending_files
+from database.db_state import get_pending_files, increment_retries, update_status
 from prefect_flows.tasks.extract import extract_data
-from prefect_flows.tasks.transform import transform_data
-from prefect_flows.tasks.load import load_data
-from database.db_state import increment_retries, update_status
+# Importamos las nuevas tareas separadas
+from prefect_flows.tasks.transform import parse_excel_sheet, clean_dataframe, transform_ifr_excel
+from prefect_flows.tasks.load import load_data_program, load_data_ifr
 
 @flow
-def etl_flow(
-    bucket: str = settings.BUCKET_NAME,
-    ):
-    """Flujo ETL principal: extrae, transforma y carga los archivos pendientes desde MinIO."""
+def etl_flow(bucket: str = settings.BUCKET_NAME):
+    """Flujo ETL principal: Procesa Program e IFR desde el mismo archivo."""
     logger = get_run_logger()
     logger.info("ETL Initialization")
 
-    # Obtiene la lista de archivos con estado 'pending' desde la base de datos
     files = get_pending_files()
 
-    # Procesa cada archivo de forma secuencial
     for file in files:
         logger.info(f"Start processing for file {file}")
         try:
-            # Usa el nombre del archivo como nombre de tabla destino
-            table_name = file.split()[0].strip()
-            logger.info(f"Table: {table_name}")
+            # 1. Extraer los datos desde MinIO 
+            # Esto devuelve los bytes del archivo excel completo
+            raw_bytes = extract_data(bucket, file)
 
-            # 1. Extrae los datos desde MinIO
-            raw_data = extract_data(bucket, file)
+            # --- RAMA 1: PROGRAM ---
+            logger.info("--- Processing Branch: Program ---")
+            # a) Parsear hoja Program
+            df_program_raw = parse_excel_sheet(raw_bytes, sheet_name="Program")
+            # b) Limpiar (reutilizando lógica)
+            df_program_clean = clean_dataframe(df_program_raw, context_name="Program")
+            # c) Cargar a tabla 'program' (o nombre derivado del archivo)
+            # Asumimos que load_data maneja la creación de tabla
+            load_data_program(df_program_clean, "program", file)
 
-            # 2. Transforma los datos en un DataFrame limpio
-            df = transform_data(raw_data, file)
 
-            # 3. Carga el DataFrame a la base de datos
-            load_data(df, table_name, file)
+            # --- RAMA 2: IFR ---
+            logger.info("--- Processing Branch: IFR ---")
+            # a) transforma la data de la hora ifr
+            df_ifr_transfrom = transform_ifr_excel(raw_bytes)
+            # b) Cargar a tabla 'ifr'
+            load_data_ifr(df_ifr_transfrom, file)
 
-            # Actualiza el estado del archivo como procesado
+
+            # Si ambas ramas tuvieron éxito, actualizamos estado
             update_status(file, 'ready')
-            logger.info("Process ended successfully")
+            logger.info(f"File {file} processed successfully (Program + IFR)")
 
         except Exception as e:
-            # Si ocurre un error, incrementa el contador de reintentos y registra el fallo
+            # Si falla CUALQUIERA de las dos ramas, marcamos error en el archivo
             increment_retries(file)
-            logger.error(e)
-
+            logger.error(f"Failed processing file {file}: {e}")
 
 if __name__ == "__main__":
-    # Permite ejecutar el flujo manualmente desde línea de comandos
     etl_flow()

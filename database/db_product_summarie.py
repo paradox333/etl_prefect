@@ -5,7 +5,7 @@ from psycopg import sql
 from psycopg.rows import dict_row
 from config import settings
 import pandas as pd
-from database.db_product import get_latest_version_info
+from database.db_program import get_latest_version_info
 
 TABLE_NAME = "product_summaries"
 SCHEMA_NAME = settings.DATABASE_SCHEMA
