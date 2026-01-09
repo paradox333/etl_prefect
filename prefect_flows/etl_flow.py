@@ -28,7 +28,6 @@ def etl_flow(bucket: str = settings.BUCKET_NAME):
             # b) Limpiar (reutilizando lógica)
             df_program_clean = clean_dataframe(df_program_raw, context_name="Program")
             # c) Cargar a tabla 'program' (o nombre derivado del archivo)
-            # Asumimos que load_data maneja la creación de tabla
             load_data_program(df_program_clean, "program", file)
 
 

@@ -191,11 +191,11 @@ def transform_ifr_excel(file_content: bytes) -> pd.DataFrame:
 
     # --- 4. MAPA DE COLUMNAS (Fechas) ---
     COLUMN_MAP = {
-        5: "01-2025",  # Columna G (Index 4 en pandas si start=C... espera, ver nota abajo)
-        6: "02-2025",  # IMPORTANTE: Si usas usecols="C:AE", la Col C es index 0. 
-        7: "03-2025",  # La Col F es index 3. La Col G es index 4.
-        8: "04-2025",  # La Col H es index 5. Revisa bien tus índices vs tu Excel.
-        9: "05-2025",  # Asumiendo que tu mapa es correcto según tu prueba anterior:
+        5: "01-2025",  
+        6: "02-2025",  
+        7: "03-2025",  
+        8: "04-2025",  
+        9: "05-2025",
         10: "06-2025",
         11: "07-2025",
         12: "08-2025",
@@ -236,6 +236,9 @@ def transform_ifr_excel(file_content: bytes) -> pd.DataFrame:
             val_f = None
 
         # --- CLASIFICACIÓN (Usa tu función existente classify_row) ---
+        if val_c == '3.4.1 Shanghai (MIC9000.00/CL-500)':
+            logger.warning(f"IFR 3.4.1 Shanghai (MIC9000.00/CL-500) Saltado")
+            continue
         row_type, data = classify_row(val_c, val_f)
 
         if row_type == 'header':
@@ -246,6 +249,11 @@ def transform_ifr_excel(file_content: bytes) -> pd.DataFrame:
             txt_prod = str(data['producto']).strip().lower()
             txt_pack = str(data['envase']).strip().lower()
 
+            # 1.1 En caso de que el producto no contenga .00 al final, se le agrega
+            if not txt_prod.endswith('.00'):
+                if len(txt_prod.split()) == 1:
+                    txt_prod = txt_prod+'.00'
+            
             # 2. Buscar IDs en los mapas
             dest_info = map_destinations.get(txt_dest)
             id_prod = map_products.get(txt_prod)
@@ -322,7 +330,7 @@ def transform_ifr_excel(file_content: bytes) -> pd.DataFrame:
                     "id_product": current_ids["id_product"],         # ID
                     "id_packaging": current_ids["id_packaging"],     # ID
                     "periodo": periodo,
-                    "periodoequivalente": per_eq,
+                    "periodoequivalente": col_idx - 4, #se resta 4 para que coincida con la numeracion de meses del 1 al 24 (dos años)
                     "metric_type": metric_key,
                     "value": val
                 })
